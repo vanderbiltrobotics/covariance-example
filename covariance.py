@@ -23,8 +23,9 @@ X_SD = 50.0
 Y_M  = 0.0
 Y_SD = 30.0
 
-# The number of values in the "window"
-LEN = 100
+# The number of values in the "window" of stored values
+# (e.g. there will be 100 most recent values stored if LEN=100)
+LEN = 5
 
 # The number of trials the code goes through
 TRIALS = 1000
@@ -33,20 +34,20 @@ TRIALS = 1000
 DELAY = 0.05
 
 
-# Set up MatPlotLib...
-plt.axis([X_M - 2*X_SD, X_M + 2*X_SD, Y_M - 2*Y_SD, Y_M + 2*Y_SD])
-plt.ion()
 
 
 if __name__ == '__main__':
-    print "Welcome to Josh's running covariance simulator!"
-    print "This program will calculate the covariance of\n\
+    print "\nWelcome to Josh's running covariance simulator!"
+    print "This program will calculate and depict the covariance matrix of\n\
 (x,y) ~ (N(%.2f, %.2f), N(%.2f, %.2f))." % (X_M, X_SD, Y_M, Y_SD)
     print "\nSetting up matrices..."
 
+    # Set up MatPlotLib...
+    plt.ion()
+
     # matrix that contains all the values (just set everything to M and see what happens)
     valmat = np.transpose(np.array([ [X_M]*LEN, [Y_M]*LEN ]))
-    # residual matrix (just the value matrix, but every value is minus the mean)
+    # residual matrix (the value matrix, but every value is minus the mean)
     residual = np.transpose(np.array([ [X_M]*LEN, [Y_M]*LEN ]))
     # covariance matrix. index (0,0) is X's vairance, (0,1) and (1,0) is X and Y correlation,
     #  and (1,1) is Y's variance
@@ -97,13 +98,14 @@ if __name__ == '__main__':
         print "and the new covariance matrix is "
         print covariance
 
-        # clear current graph and plot all points and distributions
+        # clear current graph and plot all points and deviations
         plt.gcf().clear()
         plt.axis([X_M - 2.5*X_SD, X_M + 2.5*X_SD, Y_M - 2.5*Y_SD, Y_M + 2.5*Y_SD])
         plt.plot([X_M + X_SD, X_M - X_SD], [Y_M, Y_M])
         plt.plot([X_M, X_M], [Y_M + Y_SD, Y_M - Y_SD])
         plt.plot([x_mean + x_stdev, x_mean - x_stdev], [y_mean, y_mean])
         plt.plot([x_mean, x_mean], [y_mean + y_stdev, y_mean - y_stdev])
+        
         plt.scatter(np.transpose(valmat)[0], np.transpose(valmat)[1])
         plt.pause(DELAY)
 
