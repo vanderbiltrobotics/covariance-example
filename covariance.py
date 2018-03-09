@@ -25,7 +25,7 @@ Y_SD = 30.0
 
 # The number of values in the "window" of stored values
 # (e.g. there will be 100 most recent values stored if LEN=100)
-LEN = 5
+LEN = 100
 
 # The number of trials the code goes through
 TRIALS = 1000
@@ -76,8 +76,8 @@ if __name__ == '__main__':
         # calculate new x and y means
         x_mean = x_mean - outxsamp/LEN + xsamp/LEN
         y_mean = y_mean - outysamp/LEN + ysamp/LEN
-        x_mean_diff = xsamp/LEN - outxsamp/LEN  # *
-        y_mean_diff = ysamp/LEN - outysamp/LEN  # *might be wrong
+        x_mean_diff = xsamp/LEN - outxsamp/LEN
+        y_mean_diff = ysamp/LEN - outysamp/LEN
 
         # compute new residual
         for j in residual:
