@@ -1,4 +1,7 @@
-// Main method?
+/** 
+ * Main method?
+ * @author Joshua Petrin
+ */
 
 #include <iostream>
 #include <cstdio>
@@ -7,13 +10,14 @@
 
 int main()
 {
-  CovarianceTracker<double, 3> cov;
+  CovarianceTracker<double, 3> covTrack;
+  auto cov = covTrack.getCovariance();
+  
   for (int i = 0; i < 3; ++i)
   {
     for (int j = 0; j < 3; ++j)
     {
-      cov.covariance(i,j) = i*j;
-      printf("%.2f ", cov.covariance(i,j));
+      printf("%.2f ", cov(i,j));
     }
     std::cout << std::endl;
   }

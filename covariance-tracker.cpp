@@ -20,9 +20,9 @@
  * Data length defaults to 100.
  */
 template <typename _Scalar, int _Dimension>
-CovarianceTracker<_Scalar, _Dimension>::CovarianceTracker()
-  : covariance(_Dimension, _Dimension), datalength(100), 
-    data(_Dimension, datalength), data_covered(0)
+CovarianceTracker<_Scalar, _Dimension>::CovarianceTracker(int len)
+  : covariance(_Dimension, _Dimension), data_length(len), 
+    data(_Dimension, data_length), data_covered(0)
 {
 }
 
