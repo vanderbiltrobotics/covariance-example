@@ -85,7 +85,7 @@ if __name__ == '__main__':
             j[1] = j[1] + y_mean_diff
 
         # compute covariance matrix (yay!)
-        covariance = np.array(np.matrix(np.transpose(residual)) * np.matrix(residual) / (LEN+1))
+        covariance = np.array(np.matrix(np.transpose(residual)) * np.matrix(residual) / (LEN-1))
 
         # from the covariance matrix, determine running values in each axis
         x_var   = covariance[0][0]
