@@ -161,7 +161,7 @@ private:
   int _num_used_data;  // The number of data used.
   Eigen::Matrix<_Scalar, _Dimension, 1> _running_sum;
   Eigen::Matrix<double, _Dimension, 1> _mean;
-  const Eigen::Index _data_length;
+  const int _data_length;
   Eigen::Matrix<_Scalar, Eigen::Dynamic, _Dimension> _data;
   Eigen::Matrix<double, Eigen::Dynamic, _Dimension> _residuals;
   Eigen::Matrix<double, _Dimension, _Dimension> _covariance;
