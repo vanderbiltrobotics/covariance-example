@@ -13,8 +13,8 @@ int main()
   CovarianceTracker<double, 3> covTrack(15);
   double used;
   for(double i = 0.0; i < 3.0*15.0; i+=3.0) {
-    used = 100.0*covTrack.addData(i,i+1.0,i+2.0);
-    printf("Inserting (%.2f, %.2f, %.2f)...\n", i, i+1.0, i+2.0);
+    used = 100.0*covTrack.addData(std::vector<double> {i, i+1.0, i+2.0});
+    printf("Inserting {%.2f, %.2f, %.2f}...\n", i, i+1.0, i+2.0);
     std::cout << "Used: " << used << "%" << std::endl;
 
     auto cov = covTrack.getCovariance();

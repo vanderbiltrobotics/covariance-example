@@ -8,15 +8,19 @@
  * @author joshua.m.petrin@vanderbilt.edu
  * @author Vanderbilt Robotics
  * @since March 2018
- * @version 0.0?
+ * @version 0.1?
  * @brief Calculate the covariance of a set of X-dimensional values.
  */
 
 #ifndef COVARIANCETRACKER_H
 #define COVARIANCETRACKER_H
 
+#if __cplusplus <= 199711L
+  #error This library needs at least C++11! Compile with -std=c++11 or gnu++11.
+#endif
+
 #include <Eigen/Dense>
-#include <cstdarg>
+#include <vector>
 
 
 template <typename _Scalar, int _Dimension>
@@ -57,19 +61,47 @@ public:
   /**
    * double addData(_Scalar a1, ...)
    *
-   * Adds the specified data point to this tracker. <b>WARNING!</b> Does
+   * Do NOT try to use this function. It introduces several problems in the 
+   * way arguments are passed via the stack. Odds are, if you use it, you will 
+   * use it incorrectly, your covariance will be garbage, and you will come 
+   * complaining to me about a problem that has already become obsolete. 
+   * 
+   * <strike>Adds the specified data point to this tracker. <b>WARNING!</b> Does
    * not check for number of arguments, and does not check for size of
    * primitives!! If you pass too few, you will get undefined behavior and 
    * probably a null reference exception. If you pass too many, the last 
    * number(s) will be lost. If you pass a different type than what you 
    * specified in your template, you will get bad data. So, <i>ensure you have 
    * the correct _Dimension templated, and ensure you are passing your 
-   * arguments correctly.</i>
+   * arguments correctly.</i></strike>
    * @param a1... The data point to add. Must have length _Dimension and type
    *              _Scalar.
    * @return The fraction of the stored data matrix that is used.
+   * @depricated 0.1
    */
-  double addData(_Scalar a1, ...);
+  //double addData(_Scalar a1, ...);
+  
+  /**
+   * double addData(const std::vector<_Scalar> point)
+   *
+   * Adds the specified data point to this tracker. Asserts the size of point
+   * is equal to _Dimension! So only pass the correct number of arguments or
+   * you will get a runtime error. 
+   * @param point The std::vector<_Scalar> containing the data
+   * @return The fraction of the stored data matrix that is used.
+   */
+  double addData(const std::vector<_Scalar> point);
+
+  /**
+   * double addData(const _Scalar[] point)
+   *
+   * Receives a _Scalar array to be used as a data point. If the input array 
+   * does not have a length _Dimension, memory will be grabbed that does not
+   * belong to the array, which will lead to undefined behavior. 
+   * @param point The _Scalar array that contains the data point to add.
+   * @return The fraction of the stored data matrix that is used.
+   */
+  double addData(const _Scalar point[]);
 
   /**
    * int getDataLength(void)
