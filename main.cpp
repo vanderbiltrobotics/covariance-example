@@ -10,11 +10,11 @@
 
 int main()
 {
-  CovarianceTracker<double, 3> covTrack(15);
+  CovarianceTracker<float, 3> covTrack(15);
   double used;
-  for(double i = 0.0; i < 3.0*15.0; i+=3.0) {
-    used = 100.0*covTrack.addData(std::vector<double> {i, i+1.0, i+2.0});
-    printf("Inserting {%.2f, %.2f, %.2f}...\n", i, i+1.0, i+2.0);
+  for(float i = 0.0; i < 3.0f*45.0f; i+=3.0f) {
+    used = 100.0*covTrack.addData(std::vector<float> {i, float(log(i+1.0f)), i+2.0f});
+    printf("Inserted {%.2f, %.2f, %.2f}.\n", i, log(i+1.0f), i+2.0f);
     std::cout << "Used: " << used << "%" << std::endl;
 
     auto cov = covTrack.getCovariance();

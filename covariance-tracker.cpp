@@ -25,12 +25,12 @@ template <typename _Scalar, int _Dimension>
 CovarianceTracker<_Scalar, _Dimension>::CovarianceTracker(int len)
   : _newest_data(-1),
     _num_used_data(0),
-    _running_sum(_Dimension),
-    _mean(_Dimension),
+    _running_sum(),
+    _mean(),
     _data_length(len),
     _data(len, _Dimension),
     _residuals(len, _Dimension),
-    _covariance(_Dimension, _Dimension)
+    _covariance()
 {
 }
 
@@ -84,11 +84,11 @@ double CovarianceTracker<_Scalar, _Dimension>
                / static_cast<double>(_num_used_data);
     // calculate the residual matrix (n^2 algorithm...)
     for (int j = 0; j < _num_used_data; ++j) {
-      _residuals(j, i) = _data(j, i) - _mean(i);
+      _residuals(j, i) = static_cast<double>(_data(j, i)) - _mean(i);
     }
     // calculate new covariance matrix
     _covariance = _residuals.block(0, 0, _num_used_data, _Dimension).transpose()
-                  * _residuals.block(0, 0, _num_used_data, _Dimension)
+                  * _residuals.block(0, 0, _num_used_data, _Dimension).eval()
                   / (static_cast<double>(_num_used_data) - 1.0);
   }
 

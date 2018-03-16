@@ -120,7 +120,7 @@ public:
    * returns a _Dimension x _Dimension matrix of zeros. 
    * @return The current calculated covariance matrix. 
    */
-  Eigen::Matrix<_Scalar, _Dimension, _Dimension> getCovariance() const
+  Eigen::Matrix<double, _Dimension, _Dimension> getCovariance() const
   {
     return _covariance;
   }
