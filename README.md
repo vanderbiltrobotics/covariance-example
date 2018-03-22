@@ -12,7 +12,7 @@ Default constructor. The covariance values are set to 0. Data length defaults to
 `_Dimension` -- an int equal to the number of variables in this tracker. E.g. for storing 
 the x, y, and z values obtained from a 3-axis accelerometer, use `_Dimension = 3`. 
 
-### `double addData(Eigen::Matrix&lt;_Scalar, _Dimension, 1&gt; point)`
+### `double addData(Eigen::Matrix<_Scalar, _Dimension, 1> point)`
 Adds the specified data point to this tracker. Example:
 <pre>
 CovarianceTracker&lt;float, 3&gt; covtrack(100);
@@ -21,7 +21,7 @@ datapoint &lt;&lt; 1.0, 2.0, 3.0;  // datapoint is now &lt;1.0, 2.0, 3.0&gt;
 covtrack.addData(datapoint);
 </pre>
 
-### `double addData(const std::vector&lt;_Scalar&gt; point)`
+### `double addData(const std::vector<_Scalar> point)`
 Adds the specified data point to this tracker. Asserts the size of point
 is equal to `_Dimension`! So only pass the correct number of arguments or
 you will get a runtime error.
@@ -34,11 +34,11 @@ belong to the array, which will lead to undefined behavior.
 Returns the fraction of the stored data matrix that is used.
 
 
-### `Eigen::Matrix&lt;double, _Dimension, 1&gt; getMean(void)`
+### `Eigen::Matrix<double, _Dimension, 1> getMean(void)`
 Returns the mean vector of the values stored in this covariance tracker.
 
 
-### `Eigen::Matrix&lt;double, _Dimension, _Dimension&gt;& getCovariance(void)`
+### `Eigen::Matrix<double, _Dimension, _Dimension> getCovariance(void)`
 Calculate and return the covariance matrix. If no data or one datum has been inserted 
 into this tracker, returns a `_Dimension` x `_Dimension` matrix of zeros. 
 
