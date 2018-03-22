@@ -90,7 +90,7 @@ public:
    * @param point The std::vector<_Scalar> containing the data
    * @return The fraction of the stored data matrix that is used.
    */
-  double addData(const std::vector<_Scalar> point);
+  double addData(const std::vector<_Scalar> &point);
 
   /**
    * double addData(const _Scalar[] point)
@@ -110,20 +110,17 @@ public:
    */
   int getDataLength(void) const
   {
-    return _data_length;
+    return data_length_;
   }
 
   /**
    * Eigen::Matrix<>& getCovariance(void)
    * 
-   * Get the covariance matrix. If no data has been inserted into this tracker,
+   * Calculate the covariance matrix. If no data has been inserted into this tracker,
    * returns a _Dimension x _Dimension matrix of zeros. 
    * @return The current calculated covariance matrix. 
    */
-  Eigen::Matrix<double, _Dimension, _Dimension> getCovariance() const
-  {
-    return _covariance;
-  }
+  Eigen::Matrix<double, _Dimension, _Dimension> getCovariance(void);
 
   /**
    * int getDimension(void)
@@ -140,10 +137,7 @@ public:
    *
    * @return The mean vector of the values stored in this covariance tracker.
    */
-  Eigen::Matrix<double, _Dimension, 1> getMean(void) const
-  {
-    return _mean;
-  }
+  Eigen::Matrix<double, _Dimension, 1> getMean(void);
 
   /* 
    * double getFractionUsed(void)
@@ -152,19 +146,29 @@ public:
    */
   double getFractionUsed(void) const
   {
-    return (static_cast<double>(_num_used_data) 
-      / static_cast<double>(_data_length));
+    return (static_cast<double>(num_used_data_) 
+      / static_cast<double>(data_length_));
   }
 
 private:
-  int _newest_data;  // The pointer to the newest value inserted.
-  int _num_used_data;  // The number of data used.
-  Eigen::Matrix<_Scalar, _Dimension, 1> _running_sum;
-  Eigen::Matrix<double, _Dimension, 1> _mean;
-  const int _data_length;
-  Eigen::Matrix<_Scalar, Eigen::Dynamic, _Dimension> _data;
-  Eigen::Matrix<double, Eigen::Dynamic, _Dimension> _residuals;
-  Eigen::Matrix<double, _Dimension, _Dimension> _covariance;
+  bool update_mean_, update_cov_, update_residuals_;
+  int newest_data_;  // The pointer to the newest value inserted.
+  int num_used_data_;  // The number of data used.
+  Eigen::Matrix<double, _Dimension, 1> mean_;
+  const int data_length_;
+  Eigen::Matrix<double, Eigen::Dynamic, _Dimension> data_double_;
+  Eigen::Matrix<double, Eigen::Dynamic, _Dimension> residuals_;
+  Eigen::Matrix<double, _Dimension, _Dimension> covariance_;
+  // The column matrices for each dimension; i.e. columns_[0] contains the matrix
+  //  with all row[0] values equal to 1 and all other values equal to 0.
+  std::vector<Eigen::Matrix<double, Eigen::Dynamic, _Dimension> > columns_;
+
+  /**
+   * Eigen::Matrix<double, Eigen::Dynamic, _Dimension> getResiduals(void)
+   *
+   * Updates residuals_, so returns nothing. 
+   */
+  void calculateResiduals(void);
 };
 
 

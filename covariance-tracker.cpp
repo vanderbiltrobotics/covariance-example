@@ -14,7 +14,7 @@
 #define COVARIANCETRACKER_CPP
 
 //#if __cplusplus <= 199711L
-//  #error This library needs at least C++11! Compile with -std=c++11 or gnu++11.
+// #error This library needs at least C++11! Compile with -std=c++11 or gnu++11.
 //#endif
 
 
@@ -23,15 +23,27 @@
  */
 template <typename _Scalar, int _Dimension>
 CovarianceTracker<_Scalar, _Dimension>::CovarianceTracker(int len)
-  : _newest_data(-1),
-    _num_used_data(0),
-    _running_sum(),
-    _mean(),
-    _data_length(len),
-    _data(len, _Dimension),
-    _residuals(len, _Dimension),
-    _covariance()
+  : update_mean_(false),
+    update_cov_(false),
+    update_residuals_(false),
+    newest_data_(-1),
+    num_used_data_(0),
+    mean_(),
+    data_length_(len),
+    data_double_(len, _Dimension),
+    residuals_(len, _Dimension),
+    covariance_(Eigen::Matrix<double, _Dimension, _Dimension>::Zero()),
+    columns_(_Dimension, 
+      Eigen::Matrix<double, Eigen::Dynamic, _Dimension>::Zero(len, _Dimension))
 {
+  // Set the columns_ vector matrices to 1-columns (see header description)
+  for (int i = 0; i < _Dimension; ++i)
+  {
+    for (int j = 0; j < len; ++j)
+    {
+      columns_[i](j, i) = 1.0;
+    }
+  }
 }
 
 /**
@@ -56,45 +68,25 @@ double CovarianceTracker<_Scalar, _Dimension>
 ::addData(const Eigen::Matrix<_Scalar, _Dimension, 1> &point)
 {
   // update the newest data marker
-  if (_newest_data+1 >= _data_length)
-    _newest_data = 0;
-  else
-    ++_newest_data;
+  ++newest_data_;
+  newest_data_ %= data_length_;
 
-  // if we're going to overwrite data, grab it
-  Eigen::Matrix<_Scalar, _Dimension, 1> olddata;
-  if (_num_used_data >= _data_length) {
-    for (int i = 0; i < _Dimension; ++i)
-      olddata(i) = _data(_newest_data, i);
-  } else {
-    for (int i = 0; i < _Dimension; ++i)
-      olddata(i) = 0;
-    ++_num_used_data;
-  }
+  // keep increasing num_used_data_ unless we have reached maximum
+  if (num_used_data_ < data_length_)
+    ++num_used_data_;
 
-  Eigen::Matrix<double, _Dimension, 1> mean_diff;
-
+  // insert new data into the matrix
   for (int i = 0; i < _Dimension; ++i)
-  {
-    // insert new data into the matrix
-    _data(_newest_data, i) = point(i);
-    // calculate the new mean vector
-    _running_sum(i) += point(i) - olddata(i);
-    _mean(i) = static_cast<double>(_running_sum(i))
-               / static_cast<double>(_num_used_data);
-    // calculate the residual matrix (n^2 algorithm...)
-    for (int j = 0; j < _num_used_data; ++j) {
-      _residuals(j, i) = static_cast<double>(_data(j, i)) - _mean(i);
-    }
-    // calculate new covariance matrix
-    _covariance = _residuals.block(0, 0, _num_used_data, _Dimension).transpose()
-                  * _residuals.block(0, 0, _num_used_data, _Dimension).eval()
-                  / (static_cast<double>(_num_used_data) - 1.0);
-  }
+    data_double_(newest_data_, i) = static_cast<double>(point(i));
 
   // For debugging.
-  //std::cout << _data << std::endl;
-  //std::cout << _residuals << std::endl;
+  //std::cout << data_ << std::endl;
+  //std::cout << residuals_ << std::endl;
+  
+  // alert return functions that the data has changed
+  update_mean_ = true;
+  update_cov_ = true;
+  update_residuals_ = true;
 
   return getFractionUsed();
 }
@@ -144,7 +136,7 @@ double CovarianceTracker<_Scalar, _Dimension>
  */
 template <typename _Scalar, int _Dimension>
 double CovarianceTracker<_Scalar, _Dimension>
-::addData(const std::vector<_Scalar> point)
+::addData(const std::vector<_Scalar> &point)
 {
   // point.size() MUST be equal to the Dimension of this 
   assert(point.size() == _Dimension);
@@ -170,6 +162,81 @@ double CovarianceTracker<_Scalar, _Dimension>::addData(const _Scalar point[])
   for (int i = 0; i < _Dimension; ++i)
     p(i) = point[i];
   return addData(p);
+}
+
+/**
+ * Eigen::Matrix<>& getCovariance(void)
+ * 
+ * Calculate the covariance matrix. If no data or one datum has been inserted 
+ * into this tracker, returns a _Dimension x _Dimension matrix of zeros. 
+ * @return The current calculated covariance matrix. 
+ */
+template <typename _Scalar, int _Dimension>
+Eigen::Matrix<double, _Dimension, _Dimension> 
+CovarianceTracker<_Scalar, _Dimension>::getCovariance(void)
+{
+  if (update_cov_ && num_used_data_ > 1) {
+    // update fields, if we need to
+    getMean();
+    calculateResiduals();
+    // calculate new covariance matrix
+    update_cov_ = false;
+    return covariance_ = 
+                (residuals_.block(0, 0, num_used_data_, _Dimension).transpose()
+                * residuals_.block(0, 0, num_used_data_, _Dimension)).eval()
+                / (static_cast<double>(num_used_data_) - 1.0);
+  } else {
+    return covariance_;
+  }
+}
+
+/**
+ * Eigen::Matrix<double, _Dimension, 1> getMean(void)
+ *
+ * @return The mean vector of the values stored in this covariance tracker.
+ */
+template <typename _Scalar, int _Dimension>
+Eigen::Matrix<double, _Dimension, 1>
+CovarianceTracker<_Scalar, _Dimension>::getMean(void)
+{
+  if (update_mean_) {
+    for (int i = 0; i < _Dimension; ++i) {
+      mean_(i) = data_double_.block(0, 0, num_used_data_, _Dimension)
+                 .col(i)
+                 .sum()
+                 / static_cast<double>(num_used_data_);
+    }
+    update_mean_ = false;
+
+    // Debugging
+    //std::cout << mean_ << std::endl;
+    
+    return mean_;
+  } else {
+    return mean_;
+  }
+}
+
+
+template <typename _Scalar, int _Dimension>
+void CovarianceTracker<_Scalar, _Dimension>::calculateResiduals(void)
+{
+  if (update_residuals_) {
+    // create tmp_means, a matrix with the mean of column x filling the x column
+    Eigen::Matrix<double, Eigen::Dynamic, _Dimension> 
+    tmp_means(data_length_, _Dimension);
+    tmp_means = 
+      Eigen::Matrix<double, Eigen::Dynamic, _Dimension>
+      ::Zero(data_length_, _Dimension);
+    for (int i = 0; i < _Dimension; ++i) {
+        tmp_means += (columns_[i] * mean_(i));
+    }
+
+    residuals_ = data_double_ - tmp_means;
+    update_residuals_ = false;
+
+    //std::cout << residuals_ << std::endl;
+  }
 }
 
 
